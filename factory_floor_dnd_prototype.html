@@ -1,0 +1,503 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans)}
+.app{display:flex;flex-direction:column;gap:0;min-height:600px}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--color-background-primary);border-bottom:.5px solid var(--color-border-tertiary)}
+.topbar-left{display:flex;align-items:center;gap:8px}
+.topbar-title{font-size:14px;font-weight:500;color:var(--color-text-primary)}
+.topbar-sub{font-size:11px;color:var(--color-text-tertiary)}
+.stat-pills{display:flex;gap:6px}
+.pill{font-size:11px;padding:3px 10px;border-radius:99px;border:.5px solid var(--color-border-tertiary);color:var(--color-text-secondary);background:var(--color-background-secondary)}
+.pill.warn{background:#FAEEDA;color:#854F0B;border-color:#FAC775}
+.pill.ok{background:#EAF3DE;color:#3B6D11;border-color:#C0DD97}
+.pill.err{background:#FCEBEB;color:#A32D2D;border-color:#F7C1C1}
+.main{display:flex;gap:0;flex:1}
+.sidebar{width:160px;flex-shrink:0;border-right:.5px solid var(--color-border-tertiary);padding:10px;background:var(--color-background-secondary);display:flex;flex-direction:column;gap:8px}
+.sidebar-label{font-size:10px;font-weight:500;letter-spacing:.07em;text-transform:uppercase;color:var(--color-text-tertiary);margin-bottom:2px}
+.worker-pool{display:flex;flex-direction:column;gap:4px;min-height:80px;border:.5px dashed var(--color-border-tertiary);border-radius:8px;padding:6px;background:var(--color-background-primary)}
+.worker-chip{display:flex;align-items:center;gap:6px;padding:5px 7px;border-radius:6px;border:.5px solid var(--color-border-tertiary);background:var(--color-background-primary);cursor:grab;user-select:none;font-size:11px;color:var(--color-text-primary)}
+.worker-chip:active{cursor:grabbing;opacity:.7}
+.worker-chip.dragging{opacity:.4}
+.worker-chip.skilled{border-color:#97C459}
+.worker-chip.normal{border-color:var(--color-border-tertiary)}
+.worker-chip.trainee{border-color:#FAC775}
+.avatar{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:500;flex-shrink:0}
+.av-s{background:#EAF3DE;color:#3B6D11}
+.av-n{background:#E6F1FB;color:#185FA5}
+.av-t{background:#FAEEDA;color:#854F0B}
+.worker-info{display:flex;flex-direction:column;gap:1px;min-width:0}
+.worker-name{font-size:11px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--color-text-primary)}
+.worker-skill{font-size:9px;color:var(--color-text-tertiary)}
+.floor{flex:1;padding:12px;background:var(--color-background-tertiary);display:flex;flex-direction:column;gap:10px;overflow:auto}
+.line-card{background:var(--color-background-primary);border:.5px solid var(--color-border-tertiary);border-radius:10px;overflow:hidden}
+.line-card.warn-line{border-color:#FAC775}
+.line-card.err-line{border-color:#F09595}
+.line-header{display:flex;align-items:center;justify-content:space-between;padding:7px 10px;border-bottom:.5px solid var(--color-border-tertiary);background:var(--color-background-secondary)}
+.line-name{font-size:12px;font-weight:500;color:var(--color-text-primary);display:flex;align-items:center;gap:5px}
+.line-meta{display:flex;align-items:center;gap:8px}
+.line-stat{font-size:11px;color:var(--color-text-secondary)}
+.productivity-bar{display:flex;align-items:center;gap:5px}
+.pbar-track{width:60px;height:5px;background:var(--color-background-secondary);border-radius:99px;overflow:hidden;border:.5px solid var(--color-border-tertiary)}
+.pbar-fill{height:100%;border-radius:99px;transition:width .4s}
+.pbar-label{font-size:10px;font-weight:500;min-width:28px;text-align:right}
+.line-body{display:flex;align-items:center;gap:0;padding:8px 10px;min-height:64px;flex-wrap:wrap}
+.station{display:flex;flex-direction:column;align-items:center;gap:4px;position:relative}
+.station-box{width:48px;height:48px;border-radius:7px;border:.5px solid var(--color-border-tertiary);background:var(--color-background-secondary);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:2px;position:relative;transition:border-color .2s,background .2s}
+.station-box.occupied{background:#EAF3DE;border-color:#97C459}
+.station-box.over{background:#E6F1FB;border-color:#185FA5;border-style:dashed}
+.station-box.warn-station{background:#FAEEDA;border-color:#FAC775}
+.station-box.empty-required{background:#FCEBEB;border-color:#F09595;border-style:dashed}
+.station-worker{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:500;cursor:grab}
+.station-worker:active{cursor:grabbing}
+.station-label{font-size:9px;color:var(--color-text-tertiary);text-align:center;max-width:54px;line-height:1.2}
+.arrow{color:var(--color-text-tertiary);font-size:14px;padding:0 2px;align-self:center;margin-bottom:14px}
+.alert-panel{padding:8px 10px;display:flex;flex-direction:column;gap:0}
+.alert-item{display:flex;align-items:flex-start;gap:6px;padding:5px 0;border-bottom:.5px solid var(--color-border-tertiary);font-size:11px}
+.alert-item:last-child{border-bottom:none}
+.alert-icon{font-size:13px;flex-shrink:0;margin-top:1px}
+.alert-text{color:var(--color-text-primary);line-height:1.5}
+.alert-text span{color:var(--color-text-secondary)}
+.right-panel{width:180px;flex-shrink:0;border-left:.5px solid var(--color-border-tertiary);padding:10px;background:var(--color-background-primary);display:flex;flex-direction:column;gap:10px;overflow-y:auto}
+.rp-section{display:flex;flex-direction:column;gap:6px}
+.rp-label{font-size:10px;font-weight:500;letter-spacing:.07em;text-transform:uppercase;color:var(--color-text-tertiary)}
+.metric-mini{background:var(--color-background-secondary);border-radius:7px;padding:7px 8px}
+.mm-label{font-size:10px;color:var(--color-text-secondary);margin-bottom:2px}
+.mm-val{font-size:18px;font-weight:500;color:var(--color-text-primary)}
+.mm-sub{font-size:10px;color:var(--color-text-tertiary)}
+.ai-box{background:#E6F1FB;border:.5px solid #B5D4F4;border-radius:7px;padding:8px;font-size:11px;color:#0C447C;line-height:1.6}
+.ai-label{font-size:10px;font-weight:500;color:#185FA5;margin-bottom:4px;display:flex;align-items:center;gap:4px}
+.legend{display:flex;flex-direction:column;gap:4px}
+.leg-item{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--color-text-secondary)}
+.leg-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+</style>
+
+<div class="app">
+<h2 style="display:none" class="sr-only">공장 생산 라인 인력 배치 인터랙티브 프로토타입</h2>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <i class="ti ti-building-factory" style="font-size:18px;color:var(--color-text-secondary)" aria-hidden="true"></i>
+    <div>
+      <div class="topbar-title">OO 공장 — 2025.05.27 배치 현황</div>
+      <div class="topbar-sub">IE 데이터 기반 · 드래그로 인원 재배치 가능</div>
+    </div>
+  </div>
+  <div class="stat-pills">
+    <div class="pill ok" id="pill-present"><i class="ti ti-users" style="font-size:11px" aria-hidden="true"></i> 출근 <span id="cnt-present">14</span>명</div>
+    <div class="pill" id="pill-assigned">배치 <span id="cnt-assigned">11</span>명</div>
+    <div class="pill warn" id="pill-standby">대기 <span id="cnt-standby">3</span>명</div>
+    <div class="pill" id="pill-prod">전체 생산성 <span id="cnt-prod">78</span>%</div>
+  </div>
+</div>
+
+<div class="main">
+
+<div class="sidebar">
+  <div class="sidebar-label">대기 인원</div>
+  <div class="worker-pool" id="pool" ondragover="ev.preventDefault()" ondrop="dropToPool(event)">
+  </div>
+  <div style="margin-top:8px">
+    <div class="sidebar-label" style="margin-bottom:6px">범례</div>
+    <div class="legend">
+      <div class="leg-item"><div class="leg-dot" style="background:#3B6D11"></div>숙련 작업자</div>
+      <div class="leg-item"><div class="leg-dot" style="background:#185FA5"></div>일반 작업자</div>
+      <div class="leg-item"><div class="leg-dot" style="background:#854F0B"></div>수습 작업자</div>
+      <div class="leg-item"><div class="leg-dot" style="background:#E24B4A;border-radius:2px;width:12px;height:8px"></div>스킬 부족 경고</div>
+      <div class="leg-item"><div class="leg-dot" style="background:#97C459;border-radius:2px;width:12px;height:8px"></div>배치 완료</div>
+    </div>
+  </div>
+</div>
+
+<div class="floor" id="floor">
+
+  <div class="line-card" id="line-A">
+    <div class="line-header">
+      <div class="line-name">
+        <i class="ti ti-timeline" style="font-size:14px;color:var(--color-text-tertiary)" aria-hidden="true"></i>
+        조립 라인 A
+      </div>
+      <div class="line-meta">
+        <div class="line-stat" id="lineA-count">4 / 4명</div>
+        <div class="productivity-bar">
+          <div class="pbar-track"><div class="pbar-fill" id="lineA-bar" style="width:88%;background:#639922"></div></div>
+          <div class="pbar-label" id="lineA-pct" style="color:#3B6D11">88%</div>
+        </div>
+      </div>
+    </div>
+    <div class="line-body" id="lineA-body">
+    </div>
+  </div>
+
+  <div class="line-card" id="line-B">
+    <div class="line-header">
+      <div class="line-name">
+        <i class="ti ti-timeline" style="font-size:14px;color:var(--color-text-tertiary)" aria-hidden="true"></i>
+        용접 라인 B
+      </div>
+      <div class="line-meta">
+        <div class="line-stat" id="lineB-count">3 / 4명</div>
+        <div class="productivity-bar">
+          <div class="pbar-track"><div class="pbar-fill" id="lineB-bar" style="width:62%;background:#BA7517"></div></div>
+          <div class="pbar-label" id="lineB-pct" style="color:#854F0B">62%</div>
+        </div>
+      </div>
+    </div>
+    <div class="line-body" id="lineB-body">
+    </div>
+    <div class="alert-panel" id="lineB-alerts">
+    </div>
+  </div>
+
+  <div class="line-card" id="line-C">
+    <div class="line-header">
+      <div class="line-name">
+        <i class="ti ti-timeline" style="font-size:14px;color:var(--color-text-tertiary)" aria-hidden="true"></i>
+        검사 라인 C
+      </div>
+      <div class="line-meta">
+        <div class="line-stat" id="lineC-count">4 / 4명</div>
+        <div class="productivity-bar">
+          <div class="pbar-track"><div class="pbar-fill" id="lineC-bar" style="width:82%;background:#639922"></div></div>
+          <div class="pbar-label" id="lineC-pct" style="color:#3B6D11">82%</div>
+        </div>
+      </div>
+    </div>
+    <div class="line-body" id="lineC-body">
+    </div>
+  </div>
+
+</div>
+
+<div class="right-panel">
+  <div class="rp-section">
+    <div class="rp-label">실시간 지표</div>
+    <div class="metric-mini">
+      <div class="mm-label">전체 생산성</div>
+      <div class="mm-val" id="rp-prod">78%</div>
+      <div class="mm-sub" id="rp-prod-sub">최적 대비 -22%</div>
+    </div>
+    <div class="metric-mini">
+      <div class="mm-label">미충원 필수 공정</div>
+      <div class="mm-val" id="rp-missing" style="color:#A32D2D">1개</div>
+      <div class="mm-sub">용접 라인 B</div>
+    </div>
+    <div class="metric-mini">
+      <div class="mm-label">스킬 불일치</div>
+      <div class="mm-val" id="rp-mismatch" style="color:#854F0B">1건</div>
+      <div class="mm-sub" id="rp-mismatch-sub">수습자 → 고위험 공정</div>
+    </div>
+  </div>
+  <div class="rp-section">
+    <div class="rp-label">AI 추천</div>
+    <div class="ai-box" id="ai-suggest">
+      <div class="ai-label"><i class="ti ti-sparkles" style="font-size:11px" aria-hidden="true"></i> AI 제안</div>
+      <span id="ai-text">대기 중인 김민준(숙련)을 용접 라인 B 4번 공정에 배치하면 생산성이 78% → 91%로 개선됩니다.</span>
+    </div>
+  </div>
+  <div class="rp-section">
+    <button style="width:100%;font-size:12px" onclick="sendPrompt('현재 배치 기준으로 AI 배치 리포트를 생성해줘')">AI 리포트 생성 ↗</button>
+    <button style="width:100%;font-size:12px;margin-top:4px" onclick="sendPrompt('오늘 배치에서 생산성을 가장 높이려면 어떻게 바꿔야 해?')">최적 배치 추천 ↗</button>
+  </div>
+</div>
+
+</div>
+</div>
+
+<script>
+const workers = [
+  {id:'w1',name:'김민준',initials:'김민',skill:'skilled',skillLabel:'용접 숙련',lines:['A','B'],stationTypes:['welding','assembly']},
+  {id:'w2',name:'이수정',initials:'이수',skill:'skilled',skillLabel:'조립 숙련',lines:['A','C'],stationTypes:['assembly','inspection']},
+  {id:'w3',name:'박철호',initials:'박철',skill:'normal',skillLabel:'다능 작업',lines:['A','B','C'],stationTypes:['assembly','welding','inspection']},
+  {id:'w4',name:'최영희',initials:'최영',skill:'normal',skillLabel:'조립 일반',lines:['A','C'],stationTypes:['assembly','inspection']},
+  {id:'w5',name:'정대현',initials:'정대',skill:'skilled',skillLabel:'검사 숙련',lines:['C'],stationTypes:['inspection']},
+  {id:'w6',name:'한소영',initials:'한소',skill:'normal',skillLabel:'용접 일반',lines:['B'],stationTypes:['welding']},
+  {id:'w7',name:'오민석',initials:'오민',skill:'normal',skillLabel:'조립 일반',lines:['A'],stationTypes:['assembly']},
+  {id:'w8',name:'임지연',initials:'임지',skill:'normal',skillLabel:'검사 일반',lines:['C'],stationTypes:['inspection']},
+  {id:'w9',name:'강태양',initials:'강태',skill:'trainee',skillLabel:'수습(조립)',lines:['A'],stationTypes:['assembly']},
+  {id:'w10',name:'윤채원',initials:'윤채',skill:'normal',skillLabel:'다능 작업',lines:['A','B','C'],stationTypes:['assembly','welding','inspection']},
+  {id:'w11',name:'서준혁',initials:'서준',skill:'normal',skillLabel:'용접 일반',lines:['B'],stationTypes:['welding']},
+  {id:'w12',name:'배나래',initials:'배나',skill:'skilled',skillLabel:'조립 숙련',lines:['A','C'],stationTypes:['assembly','inspection']},
+  {id:'w13',name:'조현우',initials:'조현',skill:'normal',skillLabel:'검사 일반',lines:['C'],stationTypes:['inspection']},
+  {id:'w14',name:'권미래',initials:'권미',skill:'trainee',skillLabel:'수습(검사)',lines:['C'],stationTypes:['inspection']}
+];
+
+const lines = {
+  A:{id:'A',name:'조립 라인 A',required:4,type:'assembly',stations:[
+    {id:'A1',label:'투입',type:'assembly',required:true,skillRequired:'normal'},
+    {id:'A2',label:'1차조립',type:'assembly',required:true,skillRequired:'normal'},
+    {id:'A3',label:'2차조립',type:'assembly',required:true,skillRequired:'skilled'},
+    {id:'A4',label:'체결',type:'assembly',required:true,skillRequired:'normal'},
+  ]},
+  B:{id:'B',name:'용접 라인 B',required:4,type:'welding',stations:[
+    {id:'B1',label:'지그세팅',type:'welding',required:true,skillRequired:'normal'},
+    {id:'B2',label:'1차용접',type:'welding',required:true,skillRequired:'skilled'},
+    {id:'B3',label:'2차용접',type:'welding',required:true,skillRequired:'normal'},
+    {id:'B4',label:'후처리',type:'welding',required:true,skillRequired:'normal'},
+  ]},
+  C:{id:'C',name:'검사 라인 C',required:4,type:'inspection',stations:[
+    {id:'C1',label:'외관검사',type:'inspection',required:true,skillRequired:'normal'},
+    {id:'C2',label:'치수측정',type:'inspection',required:true,skillRequired:'normal'},
+    {id:'C3',label:'기능검사',type:'inspection',required:true,skillRequired:'skilled'},
+    {id:'C4',label:'최종확인',type:'inspection',required:true,skillRequired:'normal'},
+  ]}
+};
+
+const assignments = {
+  'A1':'w2','A2':'w7','A3':'w12','A4':'w9',
+  'B1':'w11','B2':'w6','B3':'w3','B4':null,
+  'C1':'w13','C2':'w10','C3':'w5','C4':'w8'
+};
+
+const poolWorkers = ['w1','w4','w14'];
+
+let dragSrc = null;
+let dragWorkerId = null;
+
+function getWorker(id){return workers.find(w=>w.id===id)}
+function avClass(skill){return skill==='skilled'?'av-s':skill==='trainee'?'av-t':'av-n'}
+function chipClass(skill){return skill==='skilled'?'skilled':skill==='trainee'?'trainee':'normal'}
+
+function workerChipHTML(w,location){
+  return `<div class="worker-chip ${chipClass(w.skill)}" id="chip-${w.id}"
+    draggable="true"
+    ondragstart="startDrag(event,'${w.id}','${location}')"
+    ondragend="endDrag(event)"
+    title="${w.name} · ${w.skillLabel}">
+    <div class="avatar ${avClass(w.skill)}">${w.initials}</div>
+    <div class="worker-info">
+      <div class="worker-name">${w.name.slice(0,3)}</div>
+      <div class="worker-skill">${w.skillLabel}</div>
+    </div>
+  </div>`;
+}
+
+function stationWorkerHTML(w){
+  if(!w) return '';
+  return `<div class="station-worker ${avClass(w.skill)}"
+    draggable="true"
+    ondragstart="startDrag(event,'${w.id}','station')"
+    ondragend="endDrag(event)"
+    title="${w.name} · ${w.skillLabel}"
+    style="cursor:grab">${w.initials}</div>`;
+}
+
+function renderPool(){
+  const pool = document.getElementById('pool');
+  pool.innerHTML = poolWorkers.map(id=>{
+    const w=getWorker(id);
+    return w?workerChipHTML(w,'pool'):'';
+  }).join('');
+}
+
+function isSkillMatch(worker, station){
+  if(!worker) return true;
+  if(station.skillRequired==='skilled' && worker.skill==='trainee') return false;
+  if(station.type && !worker.stationTypes.includes(station.type)) return false;
+  return true;
+}
+
+function calcLineProductivity(lineId){
+  const line = lines[lineId];
+  let score=0, total=line.stations.length;
+  line.stations.forEach(st=>{
+    const wid = assignments[st.id];
+    const w = wid?getWorker(wid):null;
+    if(!w){score+=0;return;}
+    if(!isSkillMatch(w,st)){score+=0.4;return;}
+    if(w.skill==='skilled') score+=1.0;
+    else if(w.skill==='normal') score+=0.8;
+    else score+=0.5;
+  });
+  return Math.round((score/total)*100);
+}
+
+function calcOverallProductivity(){
+  const vals = ['A','B','C'].map(calcLineProductivity);
+  return Math.round(vals.reduce((a,b)=>a+b,0)/vals.length);
+}
+
+function renderLine(lineId){
+  const line = lines[lineId];
+  const body = document.getElementById(`line${lineId}-body`);
+  const alertsEl = document.getElementById(`line${lineId}-alerts`);
+  const pct = calcLineProductivity(lineId);
+  const assigned = line.stations.filter(st=>assignments[st.id]).length;
+
+  document.getElementById(`line${lineId}-count`).textContent = `${assigned} / ${line.required}명`;
+  const barEl = document.getElementById(`line${lineId}-bar`);
+  const pctEl = document.getElementById(`line${lineId}-pct`);
+  barEl.style.width = pct+'%';
+  if(pct>=80){barEl.style.background='#639922';pctEl.style.color='#3B6D11';}
+  else if(pct>=60){barEl.style.background='#BA7517';pctEl.style.color='#854F0B';}
+  else{barEl.style.background='#E24B4A';pctEl.style.color='#A32D2D';}
+  pctEl.textContent = pct+'%';
+
+  const lineCard = document.getElementById(`line-${lineId}`);
+  lineCard.className = 'line-card';
+  if(pct<60) lineCard.classList.add('err-line');
+  else if(pct<80) lineCard.classList.add('warn-line');
+
+  const stationsHTML = line.stations.map((st,i)=>{
+    const wid = assignments[st.id];
+    const w = wid?getWorker(wid):null;
+    const mismatch = w && !isSkillMatch(w,st);
+    const emptyRequired = !w && st.required;
+    let boxClass = 'station-box';
+    if(w && !mismatch) boxClass+=' occupied';
+    if(mismatch) boxClass+=' warn-station';
+    if(emptyRequired) boxClass+=' empty-required';
+    const arrow = i<line.stations.length-1?'<div class="arrow">›</div>':'';
+    return `<div class="station">
+      <div class="${boxClass}" id="box-${st.id}"
+        ondragover="allowDrop(event,'${st.id}')"
+        ondragleave="leaveDrop(event,'${st.id}')"
+        ondrop="dropToStation(event,'${st.id}')">
+        ${stationWorkerHTML(w)}
+        ${!w?`<i class="ti ti-plus" style="font-size:12px;color:var(--color-text-tertiary)" aria-hidden="true"></i>`:''}
+        ${mismatch?`<div style="position:absolute;top:-4px;right:-4px;width:12px;height:12px;border-radius:50%;background:#E24B4A;display:flex;align-items:center;justify-content:center"><i class="ti ti-alert-triangle" style="font-size:7px;color:white" aria-hidden="true"></i></div>`:''}
+      </div>
+      <div class="station-label">${st.label}${st.skillRequired==='skilled'?'\n★':''}</div>
+    </div>${arrow}`;
+  }).join('');
+
+  body.innerHTML = stationsHTML;
+
+  if(alertsEl){
+    const alerts = [];
+    line.stations.forEach(st=>{
+      const wid=assignments[st.id];
+      const w=wid?getWorker(wid):null;
+      if(!w && st.required) alerts.push({type:'err',text:`<strong style="font-weight:500">${st.label}</strong> 공정 미배치 — 라인 가동 불가`});
+      if(w && !isSkillMatch(w,st)) alerts.push({type:'warn',text:`<strong style="font-weight:500">${w.name}</strong>의 스킬이 <strong style="font-weight:500">${st.label}</strong> 공정 요구사항 미달`});
+    });
+    alertsEl.innerHTML = alerts.length>0?alerts.map(a=>`<div class="alert-item">
+      <i class="ti ${a.type==='err'?'ti-alert-circle':'ti-alert-triangle'}" style="color:${a.type==='err'?'var(--color-text-danger)':'var(--color-text-warning)'}" aria-hidden="true"></i>
+      <div class="alert-text">${a.text}</div>
+    </div>`).join(''):'';
+  }
+}
+
+function updateSummary(){
+  const prod = calcOverallProductivity();
+  const poolCount = poolWorkers.length;
+  const assigned = Object.values(assignments).filter(Boolean).length;
+  document.getElementById('cnt-present').textContent = workers.length;
+  document.getElementById('cnt-assigned').textContent = assigned;
+  document.getElementById('cnt-standby').textContent = poolCount;
+  document.getElementById('cnt-prod').textContent = prod+'%';
+  document.getElementById('rp-prod').textContent = prod+'%';
+  document.getElementById('rp-prod-sub').textContent = '최적 대비 -'+(100-prod)+'%';
+
+  let missingCount=0, mismatchCount=0;
+  ['A','B','C'].forEach(lid=>{
+    lines[lid].stations.forEach(st=>{
+      const wid=assignments[st.id];
+      const w=wid?getWorker(wid):null;
+      if(!w && st.required) missingCount++;
+      if(w && !isSkillMatch(w,st)) mismatchCount++;
+    });
+  });
+  document.getElementById('rp-missing').textContent = missingCount+'개';
+  document.getElementById('rp-mismatch').textContent = mismatchCount+'건';
+
+  const pillProd = document.getElementById('pill-prod');
+  pillProd.className = 'pill'+(prod>=80?' ok':prod>=60?' warn':' err');
+  pillProd.querySelector('span').textContent = prod+'%';
+
+  updateAISuggest();
+}
+
+function updateAISuggest(){
+  const poolSkilled = poolWorkers.map(id=>getWorker(id)).filter(w=>w&&w.skill==='skilled');
+  const emptyStations = [];
+  ['A','B','C'].forEach(lid=>{
+    lines[lid].stations.forEach(st=>{
+      if(!assignments[st.id]) emptyStations.push({st,lid});
+    });
+  });
+  const prod = calcOverallProductivity();
+  let text = '';
+  if(emptyStations.length>0 && poolSkilled.length>0){
+    const best = emptyStations[0];
+    const w = poolSkilled[0];
+    text = `대기 중인 ${w.name}(${w.skillLabel})을 ${lines[best.lid].name} ${best.st.label} 공정에 배치하면 생산성이 ${prod}% → ${Math.min(100,prod+13)}%로 개선됩니다.`;
+  } else if(emptyStations.length>0){
+    text = `${emptyStations.length}개 공정이 미배치 상태입니다. 대기 인원을 해당 공정에 배치해 주세요.`;
+  } else if(prod===100){
+    text = `모든 공정이 최적 배치됩니다. 현재 배치로 리포트를 생성하세요.`;
+  } else {
+    text = `현재 배치의 생산성은 ${prod}%입니다. 스킬 불일치 공정을 조정하면 더 개선됩니다.`;
+  }
+  document.getElementById('ai-text').textContent = text;
+}
+
+function renderAll(){
+  renderPool();
+  ['A','B','C'].forEach(renderLine);
+  updateSummary();
+}
+
+function startDrag(e, workerId, from){
+  dragWorkerId = workerId;
+  dragSrc = from;
+  e.dataTransfer.effectAllowed='move';
+  e.dataTransfer.setData('text/plain', workerId);
+  setTimeout(()=>{
+    const chip = document.getElementById('chip-'+workerId);
+    if(chip) chip.classList.add('dragging');
+  },0);
+}
+
+function endDrag(e){
+  document.querySelectorAll('.dragging').forEach(el=>el.classList.remove('dragging'));
+  document.querySelectorAll('.over').forEach(el=>el.classList.remove('over'));
+}
+
+function allowDrop(e, stationId){
+  e.preventDefault();
+  e.stopPropagation();
+  document.getElementById('box-'+stationId).classList.add('over');
+}
+
+function leaveDrop(e, stationId){
+  document.getElementById('box-'+stationId).classList.remove('over');
+}
+
+function dropToStation(e, stationId){
+  e.preventDefault();
+  e.stopPropagation();
+  document.getElementById('box-'+stationId).classList.remove('over');
+  if(!dragWorkerId) return;
+
+  const prevStation = Object.keys(assignments).find(k=>assignments[k]===dragWorkerId);
+  const displaced = assignments[stationId];
+
+  if(prevStation) assignments[prevStation] = displaced||null;
+  else {
+    const pi = poolWorkers.indexOf(dragWorkerId);
+    if(pi>-1){
+      poolWorkers.splice(pi,1);
+      if(displaced) poolWorkers.push(displaced);
+    }
+  }
+  assignments[stationId] = dragWorkerId;
+
+  dragWorkerId=null; dragSrc=null;
+  renderAll();
+}
+
+function dropToPool(e){
+  e.preventDefault();
+  if(!dragWorkerId) return;
+  const prevStation = Object.keys(assignments).find(k=>assignments[k]===dragWorkerId);
+  if(prevStation){
+    assignments[prevStation]=null;
+    if(!poolWorkers.includes(dragWorkerId)) poolWorkers.push(dragWorkerId);
+  }
+  dragWorkerId=null; dragSrc=null;
+  renderAll();
+}
+
+renderAll();
+</script>
